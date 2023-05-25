@@ -88,8 +88,8 @@ void Application::run() {
             case 'Q':
             case 'q':
                 std::cout << "Aktiviran je Q";
-                table.saveTableDataToJson("jason.json");
-                table.saveTableDataToCSV("tablic.csv");
+                table.saveTableDataToJson("src/jason.json");
+                table.saveTableDataToCSV("src/tablic.csv");
                 isRunning = false;
                 break;
             default:
