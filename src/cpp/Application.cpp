@@ -1,93 +1,129 @@
 #include "Application.h"
 
-void Application::run() {
-    bool isRunning = true;
+void Application::menuPrint() {
+    std::cout << "User Controls" << std::endl;
+    std::cout << "=============" << std::endl;
+    std::cout << "A -> add/change a value from the worksheet" << std::endl;
+    std::cout << "X -> remove value from worksheet" << std::endl;
+    std::cout << "F -> change format of a Cell" << std::endl;
+    std::cout << "U -> undo last control" << std::endl;
+    std::cout << "R -> redo last control" << std::endl;
+    std::cout << "Q -> exit application" << std::endl;
+}
+
+
+int Application::addValue(){
     string newID;
     string newValue;
     int test;
+    std::cout << "Enter cell Identification (ID): ";
+    std::getline(std::cin, newID);
+    std::cout << "Enter new value: ";
+    std::getline(std::cin, newValue);
+    test = table.addValue(newID,newValue);
+    return test;
+}
+
+int Application::changeFormat(){
+    int test;
+    string newID;
+    std::cout << "Enter cell Identification (ID): ";
+    std::getline(std::cin, newID);
+    std::cout << "Enter new format: ";
+    std::cout << "1 - Text";
+    std::cout << "2 - Number";
+    std::cout << "3 - Date";
+    std::cin >> test;
+    switch (test)
+    {
+    case 1:
+        auto *textformat = new TextFormat();
+        table.setFormat(newID,textformat);
+        break;
+    case 2:
+        auto *numberformat = new NumberFormat();
+        table.setFormat(newID, numberformat);
+        break;
+    case 3:
+        auto *dateformat = new DateFormat();
+        table.setFormat(newID, dateformat);
+        break;
+    default:
+        return 1;
+        break;
+    }
+    return 0;
+}
+
+int Application::clearCell()
+{
+    string newID;
+    std::cout << "Enter cell Identification (ID): ";
+    std::getline(std::cin, newID);
+    table.clearValue(newID);
+    return 0;
+}
+
+void Application::appUndo(){
+    try{
+        table = action.undo(table);
+    }
+    catch (std::exception &e){
+        std::cout << e.what() << std::endl;
+    }
+}
+
+void Application::appRedo()
+{
+    try{
+        action.doIt(table);
+        table = action.redo();
+    }
+    catch (std::exception &e){
+        std::cout << e.what() << std::endl;
+    }
+}
+
+void Application::run() {
+    bool isRunning = true;
+    char userInput;
     while (isRunning){
         table.printTable();
-        char userInput;
         menuPrint();
         std::cout << "Enter input: ";
-        std::cin >> userInput;
-        std::getline(std::cin,newID);
+        userInput = std::getchar();
         switch (userInput) {
-            case 'A':
-            case 'a':
-                std::cout << "Enter cell Identification (ID): ";
-                std::getline(std::cin, newID);
-                std::cout << "Enter new value: ";
-                std::getline(std::cin, newValue);
+            case 'A': case 'a':
                 action.doIt(table);
-                test = table.addValue(newID,newValue);
-                if (!test) action.undoIt();
+                if (addValue()) action.undoIt();
                 break;
-            case 'F':
-            case 'f':
+            case 'F': case 'f':
+                action.doIt(table);
                 try{
-                    std::cout << "Enter cell Identification (ID): ";
-                    std::getline(std::cin, newID);
-                    std::cout << "Enter new format: ";
-                    std::cout << "1 - Text";
-                    std::cout << "2 - Number";
-                    std::cout << "3 - Date";
-                    std::cin >> test;
-                    action.doIt(table);
-                    if (test == 1){
-                        auto *textformat = new TextFormat();
-                        table.setFormat(newID,textformat);
-                    }
-                    else if (test == 2) {
-                        auto *numberformat = new NumberFormat();
-                        table.setFormat(newID, numberformat);
-                    }
-                    else {
-                        auto *dateformat = new DateFormat();
-                        table.setFormat(newID, dateformat);
-                    }
+                    if (changeFormat()) action.undoIt();
                 }
                 catch (std::exception &e){
+                    action.undoIt();
                     std::cout << e.what() << std::endl;
                 }
                 break;
-            case 'X':
-            case 'x':
+            case 'X': case 'x':
+                action.doIt(table);
                 try{
-                    std::cout << "Enter cell Identification (ID): ";
-                    std::getline(std::cin, newID);
-                    action.doIt(table);
-                    table.clearValue(newID);
+                    clearCell();
                 }
                 catch (std::exception &e){
+                    action.undoIt();
                     std::cout << e.what() << std::endl;
                 }
                 break;
+            case 'U': case 'u':
+                appUndo();
                 break;
-            case 'U':
-            case 'u':
-                std::cout << "Aktiviran je U" << std::endl;
-                try{
-                    table = action.undo(table);
-                }
-                catch (std::exception &e){
-                    std::cout << e.what() << std::endl;
-                }
+            case 'R': case 'r':
+                appRedo();
                 break;
-            case 'R':
-            case 'r':
-                std::cout << "Aktiviran je R" << std::endl;
-                try{
-                    action.doIt(table);
-                    table = action.redo();
-                }
-                catch (std::exception &e){
-                    std::cout << e.what() << std::endl;
-                }
-                break;
-            case 'Q':
-            case 'q':
-                std::cout << "Aktiviran je Q";
+            case 'Q': case 'q':
                 table.saveTableDataToJson("src/jason.json");
                 table.saveTableDataToCSV("src/tablic.csv");
                 isRunning = false;
@@ -118,16 +154,5 @@ void Application::load() {
             std::cout << e.what() << std::endl;
         }
     }
-}
-
-void Application::menuPrint() {
-    std::cout << "User Controls" << std::endl;
-    std::cout << "=============" << std::endl;
-    std::cout << "A -> add/change a value from the worksheet" << std::endl;
-    std::cout << "X -> remove value from worksheet" << std::endl;
-    std::cout << "F -> change format of a Cell" << std::endl;
-    std::cout << "U -> undo last control" << std::endl;
-    std::cout << "R -> redo last control" << std::endl;
-    std::cout << "Q -> exit application" << std::endl;
 }
 

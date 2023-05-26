@@ -1,7 +1,3 @@
-//
-// Created by Mateja on 15-May-23.
-//
-
 #include "Action.h"
 
 void Action::doIt(Table table) {

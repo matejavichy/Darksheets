@@ -183,9 +183,9 @@ int Table::addValue(const string &newID, const string &newValue) {
             }
             catch (std::exception &e){
                 std::cout << e.what() << std::endl;
-                return 0;
+                return 1;
             }
-            return 1;
+            return 0;
         }
     }
     Cell *newCell = new Cell(newID,newValue);
@@ -218,7 +218,12 @@ void Table::setFormat(const string &ID, Format *format) {
     bool found = false;
     for(auto &cell : tableData[num-1]){
         if (cell.getID() == ID) {
-            cell.setFormat(format);
+            try{
+                cell.setFormat(format);
+            }
+            catch (std::exception &e){
+                throw CellDoesNotSupportFormatError();
+            }
             found = true;
             break;
         }
