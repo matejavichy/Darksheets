@@ -9,6 +9,11 @@ class Application {
 public:
     void run();
     void load();
+    void appUndo();
+    void appRedo();
+    int addValue();
+    int changeFormat();
+    int clearCell();
 private:
 
     void menuPrint();
